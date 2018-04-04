@@ -1,0 +1,15 @@
+button {
+    display: block;
+    width: 75px;
+    align-self: center;
+}
+
+input {
+    display: block;
+    width: 300px;
+    align-self: center;
+}
+
+table {
+    border: 0px solid black;
+}
