@@ -1,32 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+{% extends "base.jinja2" %}
 
-    <link rel="stylesheet" href="static/reset.css">
-    <link rel="stylesheet" href="static/base.css">
-    <link rel="stylesheet" href="static/layout.css">
-    <link rel="stylesheet" href="static/module.css">
-
-    <title>Stocks Portfolio</title>
-</head>
-<body>
-    <header>
-        <h1>Stocks Portfolio</h1>
-    </header>
-    <main>
-        <table>
-            <tr>
-                <th>Stock Thing</th>
-                <th>Price Per Share</th>
-            </tr>
-            <tr>
-                <td>Ticker</td>
-                <td>$100</td>
-            </tr>
-        </table>
-    </main>
-</body>
-</html>
+{% block content %}
+<ul>
+  {% for stock in data %}
+  <li>
+    <h3>{{stock.companyName}}</h3>
+    <p>({{stock.website}}) {{stock.industry}}</p>
+    <p><a href="{{request.route_url('portfolio_symbol', symbol=stock.symbol)}}">view more</a></p>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock content %}
