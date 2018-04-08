@@ -1,9 +1,12 @@
-
-{% extends "base.jinja2" %}
-
 {% block content %}
-<form id='register-form'>
-    <input placeholder="Search" type="text" id="reg-user">
-    <button type="submit">Add to Portfolio</button>
+<form action="{{request.route_url('stock')}}" method="GET">
+  <input type="text" name="symbol" placeholder="MSFT">
+  <button type="submit">Search</button>
 </form>
+
+{% if data %}
+<div>
+  {{data}}
+</div>
+{% endif %}
 {% endblock content %}
