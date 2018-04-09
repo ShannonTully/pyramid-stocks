@@ -2,10 +2,13 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from ..sample_data import MOCK_DATA
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+import requests
 
 from sqlalchemy.exc import DBAPIError
 
 from ..models import MyModel
+
+API_URL = 'https://api.iextrading.com/1.0'
 
 
 # @view_config(route_name='home', renderer='../templates/mytemplate.jinja2')
@@ -20,7 +23,8 @@ from ..models import MyModel
 
 @view_config(route_name='home', renderer='../templates/index.jinja2', request_method='GET')
 def get_home_view(request):
-    return Response('Home')
+    # return Response('Home')
+    return {}
 
 
 @view_config(route_name='auth', renderer='../templates/auth.jinja2')
@@ -49,7 +53,18 @@ def get_auth_view(request):
 
 @view_config(route_name='stock', renderer='../templates/stock-add.jinja2', request_method='GET')
 def get_stock_view(request):
-    return Response('Stocks')
+    if request.method == 'GET':
+        try:
+            symbol = request.GET['symbol']
+        except KeyError:
+            return {}
+
+        response = requests.get(API_URL + '/stock/{}/company'.format(symbol))
+        data = response.json()
+        return {'data': data}
+
+    else:
+        raise HTTPNotFound()
 
 
 @view_config(route_name='portfolio', renderer='../templates/portfolio.jinja2', request_method='GET')

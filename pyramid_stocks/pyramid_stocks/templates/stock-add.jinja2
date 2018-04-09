@@ -1,9 +1,24 @@
-
-{% extends "base.jinja2" %}
-
 {% block content %}
-<form id='register-form'>
-    <input placeholder="Search" type="text" id="reg-user">
-    <button type="submit">Add to Portfolio</button>
+<form action="{{request.route_url('stock')}}" method="GET">
+  <input type="text" name="symbol" placeholder="MSFT">
+  <button type="submit">Search</button>
 </form>
+
+{% if data %}
+  <form action="{{request.route_url('stock')}}" method="POST">
+    <input type="text" name="companyName" value="{{data.companyName}}" required readonly>
+    <input type="text" name="symbol" value="{{data.symbol}}" required readonly>
+    <input type="text" name="exchange" value="{{data.exchange}}" readonly>
+    <input type="text" name="website" value="{{data.website}}" readonly>
+    <input type="text" name="CEO" value="{{data.CEO}}" readonly>
+    <input type="text" name="industry" value="{{data.industry}}" readonly>
+    <input type="text" name="sector" value="{{data.sector}}" readonly>
+    <input type="text" name="issueType" value="{{data.issueType}}" readonly>
+    <input type="text" name="description" value="{{data.description}}" readonly>
+    <button type="submit">add to portfolio</button>
+  </form>
+  <div>
+  {{data}}
+  </div>
+{% endif %}
 {% endblock content %}
