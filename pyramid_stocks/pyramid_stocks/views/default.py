@@ -23,7 +23,8 @@ API_URL = 'https://api.iextrading.com/1.0'
 
 @view_config(route_name='home', renderer='../templates/index.jinja2', request_method='GET')
 def get_home_view(request):
-    return Response('Home')
+    # return Response('Home')
+    return {}
 
 
 @view_config(route_name='auth', renderer='../templates/auth.jinja2')
@@ -60,7 +61,7 @@ def get_stock_view(request):
 
         response = requests.get(API_URL + '/stock/{}/company'.format(symbol))
         data = response.json()
-        return {'company': data}
+        return {'data': data}
 
     else:
         raise HTTPNotFound()
