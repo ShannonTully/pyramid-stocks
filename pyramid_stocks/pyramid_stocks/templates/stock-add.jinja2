@@ -21,6 +21,7 @@
   </ul>
   
   <form action="{{request.route_url('stock')}}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{request.session.get_csrf_token()}}">
     <input type="text" name="companyName" value="{{data.companyName}}" hidden required readonly>
     <input type="text" name="symbol" value="{{data.symbol}}" hidden required readonly>
     <input type="text" name="exchange" value="{{data.exchange}}" hidden readonly>

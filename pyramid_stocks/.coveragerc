@@ -1,3 +1,9 @@
 [run]
 source = pyramid_stocks
-omit = pyramid_stocks/test*
+omit = 
+    pyramid_stocks/test*
+    pyramid_stocks/__init__.py
+    pyramid_stocks/models/__init__.py
+    pyramid_stocks/models/meta.py
+    pyramid_stocks/scripts/*
+    setup.py
