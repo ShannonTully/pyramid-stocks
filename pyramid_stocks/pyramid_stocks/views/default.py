@@ -4,9 +4,10 @@ from ..sample_data import MOCK_DATA
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 import requests
 
-from sqlalchemy.exc import DBAPIError
+from sqlalchemy.exc import DBAPIError, IntegrityError
 
-from ..models import MyModel
+from ..models import Stock
+from ..models import Account
 
 API_URL = 'https://api.iextrading.com/1.0'
 
@@ -51,7 +52,7 @@ def get_auth_view(request):
     return HTTPNotFound()
 
 
-@view_config(route_name='stock', renderer='../templates/stock-add.jinja2', request_method='GET')
+@view_config(route_name='stock', renderer='../templates/stock-add.jinja2')
 def get_stock_view(request):
     if request.method == 'GET':
         try:
@@ -63,21 +64,45 @@ def get_stock_view(request):
         data = response.json()
         return {'data': data}
 
-    else:
-        raise HTTPNotFound()
+    # else:
+    #     raise HTTPNotFound()
+
+    if request.method == 'POST':
+        # import pdb; pdb.set_trace()
+        new = Stock()
+        new.companyName = request.POST['companyName']
+        new.symbol = request.POST['symbol']
+        new.exchange = request.POST['exchange']
+        new.website = request.POST['website']
+        new.CEO = request.POST['ceo']
+        new.industry = request.POST['industry']
+        new.sector = request.POST['sector']
+        new.issueType = request.POST['issueType']
+        new.description = request.POST['description']
+
+        try:
+            request.dbsession.add(new)
+            request.dbsession.flush()
+        except IntegrityError:
+            pass
+
+        return HTTPFound(location=request.route_url('portfolio'))
+
+    return HTTPNotFound()
 
 
 @view_config(route_name='portfolio', renderer='../templates/portfolio.jinja2', request_method='GET')
 def get_portfolio_view(request):
-    return {'data': MOCK_DATA}
+    query = request.dbsession.query(Stock)
+    return {'data': query.all()}
 
 
 @view_config(route_name='portfolio_symbol', renderer='../templates/stock-detail.jinja2', request_method='GET')
 def get_portfolio_symbol_view(request):
     symbol = request.matchdict['symbol']
-
-    for data in MOCK_DATA:
-        if data['symbol'] == symbol:
+    query = request.dbsession.query(Stock)
+    for data in query.all():
+        if data.symbol == symbol:
             return {'data': data}
     return symbol
 
