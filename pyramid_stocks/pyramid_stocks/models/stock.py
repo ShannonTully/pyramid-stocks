@@ -1,15 +1,22 @@
 from sqlalchemy import (
     Column,
+    Index,
     Integer,
+    Text,
     String,
+    DateTime,
+    ForeignKey,
 )
 
 from .meta import Base
+from sqlalchemy.orm import relationship
+from .association import association_table
 
 
 class Stock(Base):
     __tablename__ = 'stock'
     id = Column(Integer, primary_key=True)
+    account_id = relationship("Account", secondary=association_table, back_populates="stock_id")
     symbol = Column(String, nullable=False, unique=True)
     companyName = Column(String)
     exchange = Column(String)
@@ -19,3 +26,6 @@ class Stock(Base):
     ceo = Column(String)
     issueType = Column(String)
     sector = Column(String)
+
+
+# Index('stock_index', Stock.id, unique=True, mysql_length=255)

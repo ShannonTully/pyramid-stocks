@@ -3,7 +3,9 @@ from pyramid.view import view_config
 from ..sample_data import MOCK_DATA
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound, HTTPBadRequest
 from pyramid.security import NO_PERMISSION_REQUIRED
+from . import DB_ERR_MSG
 import requests
+import os
 
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
@@ -72,22 +74,55 @@ def get_stock_view(request):
         if not all([field in request.POST for field in ['companyName', 'symbol', 'exchange', 'website', 'ceo', 'industry', 'sector', 'issueType', 'description']]):
             raise HTTPBadRequest
         # import pdb; pdb.set_trace()
-        new = Stock()
-        new.companyName = request.POST['companyName']
-        new.symbol = request.POST['symbol']
-        new.exchange = request.POST['exchange']
-        new.website = request.POST['website']
-        new.CEO = request.POST['ceo']
-        new.industry = request.POST['industry']
-        new.sector = request.POST['sector']
-        new.issueType = request.POST['issueType']
-        new.description = request.POST['description']
+        query = request.dbsession.query(Account)
+        instance = query.filter(Account.username == request.authenticated_userid).first()
 
-        try:
-            request.dbsession.add(new)
-            request.dbsession.flush()
-        except IntegrityError:
-            pass
+        query = request.dbsession.query(Stock)
+        instance2 = query.filter(Stock.symbol == request.POST['symbol']).first()
+
+        if instance2:
+            instance2.account_id.append(instance)
+        else:
+            new = Stock()
+            new.account_id.append(instance)
+            # new.account_id = request.authenticated_userid,
+            new.companyName = request.POST['companyName']
+            new.symbol = request.POST['symbol']
+            new.exchange = request.POST['exchange']
+            new.website = request.POST['website']
+            new.CEO = request.POST['ceo']
+            new.industry = request.POST['industry']
+            new.sector = request.POST['sector']
+            new.issueType = request.POST['issueType']
+            new.description = request.POST['description']
+
+            try:
+                request.dbsession.add(new)
+                request.dbsession.flush()
+            except IntegrityError:
+                pass
+
+        # new = Stock()
+        # new.account_id.append(instance)
+        # # new.account_id = request.authenticated_userid,
+        # new.companyName = request.POST['companyName']
+        # new.symbol = request.POST['symbol']
+        # new.exchange = request.POST['exchange']
+        # new.website = request.POST['website']
+        # new.CEO = request.POST['ceo']
+        # new.industry = request.POST['industry']
+        # new.sector = request.POST['sector']
+        # new.issueType = request.POST['issueType']
+        # new.description = request.POST['description']
+
+        # try:
+        #     request.dbsession.add(new)
+        #     request.dbsession.flush()
+        # except IntegrityError:
+        #     query = request.dbsession.query(Stock)
+        #     instance2 = query.filter(Stock.symbol == request.POST['symbol']).first()
+
+        #     instance2.account_id.append(instance)
 
         return HTTPFound(location=request.route_url('portfolio'))
 
@@ -96,18 +131,42 @@ def get_stock_view(request):
 
 @view_config(route_name='portfolio', renderer='../templates/portfolio.jinja2', request_method='GET')
 def get_portfolio_view(request):
-    query = request.dbsession.query(Stock)
-    return {'data': query.all()}
+    try:
+        query = request.dbsession.query(Account)
+        instance = query.filter(Account.username == request.authenticated_userid).first()
+        # query = request.dbsession.query(Stock)
+        # user_stocks = query.filter(Stock.account_id == request.authenticated_userid)
+    except DBAPIError:
+        return Response(DB_ERR_MSG, content_type='text/plain', status=500)
+    if instance:
+        return {'data': instance.stock_id}
+    else:
+        return HTTPNotFound()
 
 
 @view_config(route_name='portfolio_symbol', renderer='../templates/stock-detail.jinja2', request_method='GET')
 def get_portfolio_symbol_view(request):
     try:
-        symbol = request.matchdict['symbol']
-        query = request.dbsession.query(Stock)
-        for data in query.all():
-            if data.symbol == symbol:
-                return {'data': data}
-        return symbol
+        stock_id = request.matchdict['symbol']
     except KeyError:
         return HTTPNotFound()
+
+    try:
+        # query = request.dbsession.query(Account)
+        # instance = query.filter(Account.username == request.authenticated_userid).first()
+        query = request.dbsession.query(Stock)
+        # import pdb; pdb.set_trace()
+        stock_detail = query.filter(Stock.symbol == stock_id).first()
+        # import pdb; pdb.set_trace()
+        for each in stock_detail.account_id:
+            if each.username == request.authenticated_userid:
+                return {'data': stock_detail}
+        raise HTTPNotFound()
+        # stock_detail.account_id. == 1
+
+    except DBAPIError:
+        return Response(DB_ERR_MSG, content_type='text/plain', status=500)
+
+    # if stock_detail is None:
+    #     raise HTTPNotFound()
+
